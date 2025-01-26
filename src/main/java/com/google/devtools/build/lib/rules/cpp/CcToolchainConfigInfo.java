@@ -69,6 +69,7 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
   private final ImmutableList<Pair<String, String>> toolPaths;
   private final ImmutableList<Pair<String, String>> makeVariables;
   private final String builtinSysroot;
+  private final ImmutableList<String> additionalLinkOutputs;
 
   CcToolchainConfigInfo(
       ImmutableList<ActionConfig> actionConfigs,
@@ -85,7 +86,8 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
       String abiLibcVersion,
       ImmutableList<Pair<String, String>> toolPaths,
       ImmutableList<Pair<String, String>> makeVariables,
-      String builtinSysroot) {
+      String builtinSysroot,
+      ImmutableList<String> additionalLinkOutputs) {
     this.actionConfigs = actionConfigs;
     this.features = features;
     this.artifactNamePatterns = artifactNamePatterns;
@@ -101,6 +103,7 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
     this.toolPaths = toolPaths;
     this.makeVariables = makeVariables;
     this.builtinSysroot = builtinSysroot;
+    this.additionalLinkOutputs = additionalLinkOutputs;
   }
 
   @Override
@@ -162,7 +165,8 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
         toolchain.getMakeVariableList().stream()
             .map(makeVariable -> Pair.of(makeVariable.getName(), makeVariable.getValue()))
             .collect(ImmutableList.toImmutableList()),
-        toolchain.getBuiltinSysroot());
+        toolchain.getBuiltinSysroot(),
+        ImmutableList.copyOf(toolchain.getAdditionalLinkOutputsList()));
   }
 
   public ImmutableList<ActionConfig> getActionConfigs() {
@@ -189,6 +193,20 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
 
   public ImmutableList<String> getCxxBuiltinIncludeDirectories() {
     return cxxBuiltinIncludeDirectories;
+  }
+
+  @StarlarkMethod(
+      name = "additional_link_outputs",
+      documented = false,
+      useStarlarkThread = true)
+  public List<String> getAdditionalLinkOutputsForStarlark(StarlarkThread thread)
+      throws EvalException {
+    CcModule.checkPrivateStarlarkificationAllowlist(thread);
+    return getAdditionalLinkOutputs();
+  }
+
+  public ImmutableList<String> getAdditionalLinkOutputs() {
+    return additionalLinkOutputs;
   }
 
   @StarlarkMethod(name = "toolchain_id", documented = false, useStarlarkThread = true)

@@ -594,7 +594,7 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
     # then a pdb file will be built along with the executable.
     pdb_file = None
     if cc_common.is_enabled(feature_configuration = feature_configuration, feature_name = "generate_pdb_file"):
-        pdb_file = ctx.actions.declare_file(_strip_extension(binary) + ".pdb", sibling = binary)
+        pdb_file = ctx.actions.declare_file(binary.basename + ".pdb", sibling = binary)
         additional_linker_outputs.append(pdb_file)
 
     linkmap = None
@@ -602,11 +602,17 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         linkmap = ctx.actions.declare_file(binary.basename + ".map", sibling = binary)
         additional_linker_outputs.append(linkmap)
 
+    for suffix in cc_toolchain.additional_link_outputs:
+        outfile = ctx.actions.declare_file(binary.basename + suffix, sibling = binary)
+        additional_linker_outputs.append(outfile)
+
     extra_link_time_libraries = deps_cc_linking_context.extra_link_time_libraries()
     linker_inputs_extra = depset()
     runtime_libraries_extra = depset()
     if extra_link_time_libraries != None:
         linker_inputs_extra, runtime_libraries_extra = extra_link_time_libraries.build_libraries(ctx = ctx, static_mode = linking_mode != linker_mode.LINKING_DYNAMIC, for_dynamic_library = _is_link_shared(ctx))
+
+    print("additional =", additional_linker_outputs)
 
     cc_linking_outputs_binary, cc_launcher_info, deps_cc_linking_context = _create_transitive_linking_actions(
         ctx,
