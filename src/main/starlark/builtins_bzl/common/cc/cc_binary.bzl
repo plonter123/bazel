@@ -443,9 +443,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
 
     # TODO(b/198254254): Fill empty providers if needed.
     cc_toolchain = cc_helper.find_cpp_toolchain(ctx)
-    # print("*"*80)
-    # print(cc_toolchain)
-    # print("*"*80)
     cpp_config = ctx.fragments.cpp
     cc_helper.report_invalid_options(cc_toolchain, cpp_config)
 
@@ -565,10 +562,6 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
             disallow_dynamic_library = is_windows_enabled,
         )
 
-    # print("binary =", binary)
-    # print("linking outputs =", cc_linking_outputs)
-    # print("compile outputs =", cc_compilation_outputs)
-
     is_static_mode = linking_mode != linker_mode.LINKING_DYNAMIC
     deps_cc_linking_context = _collect_linking_context(ctx)
     generated_def_file = None
@@ -609,13 +602,8 @@ def cc_binary_impl(ctx, additional_linkopts, force_linkstatic = False):
         linkmap = ctx.actions.declare_file(binary.basename + ".map", sibling = binary)
         additional_linker_outputs.append(linkmap)
 
-    # TODO: Get from toolchain
-    changed = [
-        binary.basename + ".change",
-    ]
-
-    for filename in changed:
-        outfile = ctx.actions.declare_file(filename, sibling = binary)
+    for suffix in cc_toolchain.additional_link_outputs:
+        outfile = ctx.actions.declare_file(binary.basename + suffix, sibling = binary)
         additional_linker_outputs.append(outfile)
 
     extra_link_time_libraries = deps_cc_linking_context.extra_link_time_libraries()

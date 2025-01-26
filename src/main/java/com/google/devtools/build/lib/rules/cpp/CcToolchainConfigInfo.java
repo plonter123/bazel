@@ -43,7 +43,6 @@ import com.google.devtools.build.lib.view.config.crosstool.CrosstoolConfig.ToolP
 import java.util.List;
 import net.starlark.java.annot.StarlarkMethod;
 import net.starlark.java.eval.EvalException;
-import net.starlark.java.eval.StarlarkFunction;
 import net.starlark.java.eval.StarlarkThread;
 import net.starlark.java.eval.Tuple;
 
@@ -182,9 +181,6 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
     return artifactNamePatterns;
   }
 
-  public ImmutableList<String> getAdditionalLinkOutputs() {
-    return additionalLinkOutputs;
-  }
   @StarlarkMethod(
       name = "cxx_builtin_include_directories",
       documented = false,
@@ -197,6 +193,20 @@ public class CcToolchainConfigInfo extends NativeInfo implements CcToolchainConf
 
   public ImmutableList<String> getCxxBuiltinIncludeDirectories() {
     return cxxBuiltinIncludeDirectories;
+  }
+
+  @StarlarkMethod(
+      name = "additional_link_outputs",
+      documented = false,
+      useStarlarkThread = true)
+  public List<String> getAdditionalLinkOutputsForStarlark(StarlarkThread thread)
+      throws EvalException {
+    CcModule.checkPrivateStarlarkificationAllowlist(thread);
+    return getAdditionalLinkOutputs();
+  }
+
+  public ImmutableList<String> getAdditionalLinkOutputs() {
+    return additionalLinkOutputs;
   }
 
   @StarlarkMethod(name = "toolchain_id", documented = false, useStarlarkThread = true)
